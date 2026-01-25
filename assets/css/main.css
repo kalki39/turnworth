@@ -13253,3 +13253,10 @@ img {
     # Footer style here
 ----------------------------------------------*/
 /*====== Components End ======*//*# sourceMappingURL=main.css.map */
+/* Force submenu visibility when toggled by JS */
+.main-menu .sub-menu.js-open, .main-menu3 .sub-menu.js-open {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    z-index: 99999 !important;
+}

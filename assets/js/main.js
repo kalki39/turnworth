@@ -40,8 +40,58 @@
         initializeSite();
     }
 
+    // Desktop Menu Click Support (using event delegation for dynamically loaded content)
+    // This must be outside initializeSite() to ensure it's only attached once
+    $(document).on('click', '.main-menu a, .main-menu3 a', function(e) {
+        var $link = $(this);
+        var $parent = $link.parent();
+        var href = $link.attr('href');
+        
+        // ONLY handle parent menu items with placeholder hrefs (#, #!, empty)
+        if ($parent.hasClass('menu-item-has-children') && (href === '#' || href === '#!' || href === '' || !href)) {
+            e.preventDefault();
+            
+            var $submenu = $link.siblings('ul.sub-menu');
+            if ($submenu.length) {
+                $submenu.toggleClass('js-open');
+                $submenu.stop(true, true).slideToggle(300);
+            }
+            return false;
+        }
+        
+        // For real links - explicitly navigate
+        if (href && href !== '#' && href !== '#!' && href !== '') {
+            window.location.href = href;
+            return false;
+        }
+    });
+
   // Function to initialize all the site scripts
   function initializeSite() {
+    setActiveMenu();
+
+    /*---------- Set Active Menu  ----------*/
+    function setActiveMenu() {
+        var path = window.location.pathname;
+        var page = path.split("/").pop();
+        if (page === "" || page === "index.html" || page === "index") {
+            page = "index.html";
+        }
+
+        // Remove existing active classes from menu links
+        $('.main-menu li a, .global-mobile-menu li a, .main-menu3 li a').removeClass('active');
+
+        // Allow multiple matches
+        var selector = '.main-menu li a[href="' + page + '"], .global-mobile-menu li a[href="' + page + '"], .main-menu3 li a[href="' + page + '"]';
+        var $link = $(selector);
+
+        $link.addClass('active');
+
+        // Add active class to parent dropdowns
+        $link.closest('.menu-item-has-children').children('a').addClass('active');
+        $link.closest('.menu-item-has-children').parents('.menu-item-has-children').children('a').addClass('active');
+    }
+
     /*---------- Mobile Menu  ----------*/
     $.fn.globalmobilemenu = function (options) {
       var opt = $.extend(
@@ -893,68 +943,4 @@
     }
 
   }
-
-  // Helper function to set active class based on current URL
-  function setActiveMenu() {
-    var path = window.location.pathname;
-    var page = path.split("/").pop(); // Get the current file name (e.g., "index.html")
-
-    if(page === "") page = "index.html"; // Default to index.html if root
-
-    // Reset active classes
-    $('nav.main-menu a, nav.global-mobile-menu a').removeClass('active');
-
-    // Add active class to corresponding links
-    $('nav.main-menu a[href="' + page + '"], nav.global-mobile-menu a[href="' + page + '"]').addClass('active');
-    
-    // Also add active class to parent if submenu
-    $('nav.main-menu a[href="' + page + '"]').parents('li.menu-item-has-children').children('a').addClass('active');
-    $('nav.global-mobile-menu a[href="' + page + '"]').parents('li.menu-item-has-children').children('a').addClass('active');
-  }
-
-  $(document).ready(function () {
-    // Determine if we need to load components
-    var loadMobile = $("#mobile-menu-placeholder").length > 0;
-    var loadHeader = $("#header-placeholder").length > 0;
-    var loadFooter = $("#footer-placeholder").length > 0;
-
-    // Use $.when to wait for all loaders
-    var deferredMobile = loadMobile ? $.load("components/mobile-menu.html") : $.Deferred().resolve();
-    var deferredHeader = loadHeader ? $.load("components/header.html") : $.Deferred().resolve();
-    var deferredFooter = loadFooter ? $.load("components/footer.html") : $.Deferred().resolve();
-
-    // Helper functions for loading
-    function loadComponent(selector, file) {
-        var deferred = $.Deferred();
-        if ($(selector).length) {
-            $(selector).load(file, function(response, status, xhr) {
-                if (status == "error") {
-                    console.error("Error loading " + file + ": " + xhr.status + " " + xhr.statusText);
-                    deferred.reject();
-                } else {
-                    $(this).children().unwrap(); 
-                    deferred.resolve();
-                }
-            });
-        } else {
-            deferred.resolve();
-        }
-        return deferred.promise();
-    }
-
-    $.when(
-        loadComponent("#mobile-menu-placeholder", "components/mobile-menu.html"),
-        loadComponent("#header-placeholder", "components/header.html"),
-        loadComponent("#footer-placeholder", "components/footer.html")
-    ).done(function () {
-        // All components loaded
-        setActiveMenu();
-        initializeSite();
-    }).fail(function() {
-        console.error("One or more components failed to load.");
-        initializeSite(); // Initialize anyway to strictly avoid blocking functionality
-    });
-
-  });
-
 })(jQuery);
