@@ -7172,8 +7172,8 @@ img {
 .intro2-content__list {
   display: flex;
   align-items: center;
-  gap: 65px;
-  margin-top: 30px;
+  gap: 40px;
+  margin-top: 60px;
   flex-wrap: wrap;
 }
 @media (max-width: 500px) {
@@ -10006,7 +10006,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
+  /* margin-bottom: 10px; */
   transition: background-color 0.3s ease;
 }
 .category2-card .icon svg {
